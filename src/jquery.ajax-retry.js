@@ -20,6 +20,16 @@
 
   // enhance all ajax requests with our retry API
   $.ajaxPrefilter(function(options, originalOptions, jqXHR) {
+    var hostIndex = options.hostIndex || 0;
+    options.url = options.hosts[hostIndex];
+    if (hostIndex == options.hosts.length - 1) {
+      hostIndex = 0;
+    }
+    else {
+      hostIndex++;
+    }
+    jqXHR.hostIndex = hostIndex;
+
     jqXHR.retry = function(opts) {
       if(opts.timeout) {
         this.timeout = opts.timeout;
@@ -41,6 +51,8 @@
       var ajaxOptions = this;
       var output = new $.Deferred();
       var retryAfter = jqXHR.getResponseHeader('Retry-After');
+
+      ajaxOptions.hostIndex = jqXHR.hostIndex;
 
       // whenever we do make this request, pipe its output to our deferred
       function nextRequest() {
